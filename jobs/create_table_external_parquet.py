@@ -211,3 +211,4 @@ table = client_bq.create_table(table, exists_ok=True)
 
 print(f"Tabela externa criada: {table_ref}")
 print(f"Origem: {GCS_URI}*")
+print("test")
