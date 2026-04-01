@@ -1,17 +1,25 @@
 from google.cloud import bigquery
 from google.cloud.bigquery import ExternalConfig
 from google.oauth2 import service_account
-from dotenv import load_dotenv
+from airflow.models.variable import Variable
 import os
 
 # Carregar variáveis de ambiente do arquivo .env
-load_dotenv()
-enviroment = os.getenv('ENTORNO')
+# 1. LER AS CONFIGURAÇÕES DA VARIÁVEL DO AIRFLOW
+# ==================================================================
+try:
+    # Nossa única fonte da verdade para todo o workflow
+    CONFIG = Variable.get("dataproc_config_cluster_iatributario", deserialize_json=True)
+except Exception as e:
+    print(f"Could not load Airflow Variable: {e}")
+    CONFIG = {}
+    
+enviroment = Variable.getenv('ENTORNO')
 # Configuração do seu projeto e dataset
-PROJECT_ID = os.getenv('PROJECT_ID')
+PROJECT_ID = Variable.getenv('PROJECT_ID')
 
 DATASET_ID='RAW'
-GCS_NAME = os.getenv('GCS_NAME')
+GCS_NAME = Variable.get('GCS_NAME')
 if enviroment=="DEV":
     TABLE_ID = "test_arquivos_xml"
     preffix='xml1'
@@ -21,12 +29,11 @@ else:
 GCS_URI = f"gs://{GCS_NAME}/{preffix}/"
     
     
-GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
-print(GOOGLE_APPLICATION_CREDENTIALS)
+
 
 # Inicializar cliente de BigQuery
-creds=service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
-client_bq = bigquery.Client(credentials=creds)
+# creds=service_account.Credentials.from_service_account_file(GOOGLE_APPLICATION_CREDENTIALS)
+client_bq = bigquery.Client()
 
 # Criar referência da tabela
 table_ref = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
@@ -210,4 +217,3 @@ table = client_bq.create_table(table, exists_ok=True)
 
 print(f"Tabela externa criada: {table_ref}")
 print(f"Origem: {GCS_URI}*")
-print("test2")
