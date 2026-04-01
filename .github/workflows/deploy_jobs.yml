@@ -35,4 +35,4 @@ jobs:
 
       - name: Copiar DAGs para o bucket GCS
         run: |
-          gsutil -m cp dags/*.py gs://bucket-via-gcb-ia-tributario-hlg-composer/dags/jobs
+          gsutil -m cp jobs/*.py gs://bucket-via-gcb-ia-tributario-hlg-composer/dags/jobs
