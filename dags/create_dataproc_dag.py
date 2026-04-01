@@ -170,7 +170,7 @@ with DAG(
                     "--entorno",    CONFIG.get("ENTORNO"),
                     "--project_id", CONFIG.get("PROJECT_ID"),
                     "--gcs_name",   CONFIG.get("GCS_NAME"),
-                    "--gcs_name_parquet",   CONFIG.get(GCS_NAME_PARQUET)
+                    "--gcs_name_parquet",   CONFIG.get("GCS_NAME_PARQUET")
                 ]
             }
         }

@@ -8,6 +8,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--entorno")
 parser.add_argument("--project_id")
 parser.add_argument("--gcs_name")
+parser.add_argument("--gcs_name_parquet")
 args = parser.parse_args()
 
 enviroment = args.entorno
