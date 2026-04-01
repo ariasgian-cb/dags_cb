@@ -199,7 +199,7 @@ schema = [
     bigquery.SchemaField("produto_pis_PISST", "FLOAT64", mode="NULLABLE"),
     bigquery.SchemaField("produto_pis_PISQtde", "STRING", mode="NULLABLE"),
     # Adicionar a coluna de partição
-    bigquery.SchemaField("ide_data_emissao", "STRING", mode="NULLABLE"),
+    bigquery.SchemaField("data_emissao", "STRING", mode="NULLABLE"),
 ]
 
 # Criar tabela com configuração externa
