@@ -1,0 +1,38 @@
+# Implanta os DAGs do Cloud Composer para o bucket GCS ao fazer push na branch main.
+# Requer o seguinte GitHub Secret configurado no repositório:
+#   - GCP_SA_KEY: JSON completo da Service Account com permissão de escrita no bucket
+
+name: Deploy DAGs to Cloud Composer
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - "jobs/**.py"
+
+jobs:
+  deploy:
+    name: Copy DAGs to GCS
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Autenticação no GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Configurar Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Copiar DAGs para o bucket GCS
+        run: |
+          gsutil -m cp dags/*.py gs://bucket-via-gcb-ia-tributario-hlg-composer/dags/jobs

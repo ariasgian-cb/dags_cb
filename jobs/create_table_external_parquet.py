@@ -1,25 +1,19 @@
 from google.cloud import bigquery
 from google.cloud.bigquery import ExternalConfig
-from google.oauth2 import service_account
-from airflow.models.variable import Variable
-import os
+import argparse
 
-# Carregar variáveis de ambiente do arquivo .env
-# 1. LER AS CONFIGURAÇÕES DA VARIÁVEL DO AIRFLOW
+# 1. LER OS ARGUMENTOS PASSADOS PELO DAG DO AIRFLOW
 # ==================================================================
-try:
-    # Nossa única fonte da verdade para todo o workflow
-    CONFIG = Variable.get("dataproc_config_Dataproc", deserialize_json=True)
-except Exception as e:
-    print(f"Could not load Airflow Variable: {e}")
-    CONFIG = {}
-    
-enviroment = CONFIG.get('ENTORNO')
-# Configuração do seu projeto e dataset
-PROJECT_ID = CONFIG.get('PROJECT_ID')
+parser = argparse.ArgumentParser()
+parser.add_argument("--entorno")
+parser.add_argument("--project_id")
+parser.add_argument("--gcs_name")
+args = parser.parse_args()
 
-DATASET_ID='RAW'
-GCS_NAME = CONFIG.get('GCS_NAME')
+enviroment = args.entorno
+PROJECT_ID  = args.project_id
+DATASET_ID  = 'RAW'
+GCS_NAME    = args.gcs_name
 if enviroment=="DEV":
     TABLE_ID = "test_arquivos_xml"
     preffix='xml1'

@@ -13,17 +13,32 @@ from airflow.providers.google.cloud.operators.dataproc import (
     DataprocSubmitJobOperator
 )
 from airflow.utils.dates import days_ago
+from airflow.models.variable import Variable
+
+# Carregar variáveis de ambiente do arquivo .env
+# 1. LER AS CONFIGURAÇÕES DA VARIÁVEL DO AIRFLOW
+# ==================================================================
+try:
+    # Nossa única fonte da verdade para todo o workflow
+    CONFIG = Variable.get("dataproc_config_Dataproc", deserialize_json=True)
+except Exception as e:
+    print(f"Could not load Airflow Variable: {e}")
+    CONFIG = {}
+
 
 # ============================================
 # CONFIGURACIÓN CENTRALIZADA
 # ============================================
 
-PROJECT_ID = "via-gcb-ia-tributario-hlg"
-REGION = "us-central1"
-CLUSTER_NAME = f"cluster-analytics1-{{{{ ds_nodash }}}}"  # Nombre dinámico con fecha
+PROJECT_ID = CONFIG.get('PROJECT_ID')
+REGION = CONFIG.get('REGION')
+CLUSTER_PREFIX = CONFIG.get('REGION')
+GCS_NAME = CONFIG.get('GCS_NAME')
+CLUSTER_NAME = f"{CLUSTER_PREFIX}-{{{{ ds_nodash }}}}"  
+
 
 # Rutas de los scripts PySpark en GCS
-SCRIPTS_BASE_PATH = "gs://bucket-via-gcb-ia-tributario-hlg-composer/dags"
+SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags/jobs"
 JOBS_CONFIG = [
     {
         "job_id": "create_table",
@@ -149,7 +164,12 @@ with DAG(
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
             "pyspark_job": {
-                "main_python_file_uri": job_config["script"]
+                "main_python_file_uri": job_config["script"],
+                "args": [
+                    "--entorno",    CONFIG.get("ENTORNO"),
+                    "--project_id", CONFIG.get("PROJECT_ID"),
+                    "--gcs_name",   CONFIG.get("GCS_NAME"),
+                ]
             }
         }
         
