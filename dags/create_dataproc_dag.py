@@ -34,17 +34,30 @@ PROJECT_ID = CONFIG.get('PROJECT_ID')
 REGION = CONFIG.get('REGION')
 CLUSTER_PREFIX = CONFIG.get('CLUSTER_NAME')
 GCS_NAME = CONFIG.get('GCS_NAME')
-GCS_NAME_PARQUET = CONFIG.get('GCS_NAME_PARQUET')
-CLUSTER_NAME = f"{CLUSTER_PREFIX}-{{{{ ds_nodash }}}}"  
+CLUSTER_NAME = f"{CLUSTER_PREFIX}-{{{{ ds_nodash }}}}"
 
 
 # Rutas de los scripts PySpark en GCS
 SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags"
 JOBS_CONFIG = [
     {
+        "job_id": "processamento_nfe",
+        "script": f"{SCRIPTS_BASE_PATH}/jobs/process_nfe_xmls.py",
+        "description": "Processa os XMLs de NFe e gera o Parquet",
+        "args": [
+            "--entorno", CONFIG.get("ENTORNO")
+        ]
+    },
+    {
         "job_id": "create_table",
         "script": f"{SCRIPTS_BASE_PATH}/jobs/create_table_external_parquet.py",
-        "description": "Create table"
+        "description": "Create table",
+        "args": [
+            "--entorno",    CONFIG.get("ENTORNO"),
+            "--project_id", CONFIG.get("PROJECT_ID"),
+            "--gcs_name",   CONFIG.get("GCS_NAME"),
+            "--gcs_name_parquet",   CONFIG.get("GCS_NAME_PARQUET")
+        ]
     }
 ]
 
@@ -159,29 +172,24 @@ with DAG(
     # TAREA 2-4: EJECUTAR JOBS PYSPARK
     # ============================================
     previous_task = create_cluster
-    
+
     for job_config in JOBS_CONFIG:
         pyspark_job = {
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
             "pyspark_job": {
                 "main_python_file_uri": job_config["script"],
-                "args": [
-                    "--entorno",    CONFIG.get("ENTORNO"),
-                    "--project_id", CONFIG.get("PROJECT_ID"),
-                    "--gcs_name",   CONFIG.get("GCS_NAME"),
-                    "--gcs_name_parquet",   CONFIG.get("GCS_NAME_PARQUET")
-                ]
+                "args": job_config.get("args", [])
             }
         }
-        
+
         submit_job = DataprocSubmitJobOperator(
             task_id=f"submit_job_{job_config['job_id']}",
             job=pyspark_job,
             region=REGION,
             project_id=PROJECT_ID,
         )
-        
+
         # Establecer dependencia secuencial
         previous_task >> submit_job
         previous_task = submit_job
@@ -203,5 +211,5 @@ with DAG(
 # ============================================
 # FLUJO DEL DAG
 # ============================================
-# create_cluster >> submit_job_api_connection >> submit_job_tags_extraction >> 
+# create_cluster >> submit_job_api_connection >> submit_job_tags_extraction >>
 # submit_job_vertex_execution >> delete_cluster
