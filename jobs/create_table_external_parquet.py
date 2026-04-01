@@ -13,7 +13,7 @@ args = parser.parse_args()
 enviroment = args.entorno
 PROJECT_ID  = args.project_id
 DATASET_ID  = 'RAW'
-GCS_NAME    = args.gcs_name
+GCS_NAME    = args.gcs_name_parquet
 if enviroment=="DEV":
     TABLE_ID = "test_arquivos_xml"
     preffix='xml1'

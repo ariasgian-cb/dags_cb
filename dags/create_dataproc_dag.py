@@ -34,6 +34,7 @@ PROJECT_ID = CONFIG.get('PROJECT_ID')
 REGION = CONFIG.get('REGION')
 CLUSTER_PREFIX = CONFIG.get('CLUSTER_NAME')
 GCS_NAME = CONFIG.get('GCS_NAME')
+GCS_NAME_PARQUET = CONFIG.get('GCS_NAME_PARQUET')
 CLUSTER_NAME = f"{CLUSTER_PREFIX}-{{{{ ds_nodash }}}}"  
 
 
@@ -169,6 +170,7 @@ with DAG(
                     "--entorno",    CONFIG.get("ENTORNO"),
                     "--project_id", CONFIG.get("PROJECT_ID"),
                     "--gcs_name",   CONFIG.get("GCS_NAME"),
+                    "--gcs_name_parquet",   CONFIG.get(GCS_NAME_PARQUET)
                 ]
             }
         }
