@@ -38,11 +38,11 @@ CLUSTER_NAME = f"{CLUSTER_PREFIX}-{{{{ ds_nodash }}}}"
 
 
 # Rutas de los scripts PySpark en GCS
-SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags/jobs"
+SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags"
 JOBS_CONFIG = [
     {
         "job_id": "create_table",
-        "script": f"{SCRIPTS_BASE_PATH}/create_table_external_parquet.py",
+        "script": f"{SCRIPTS_BASE_PATH}/jobs/create_table_external_parquet.py",
         "description": "Create table"
     }
 ]
