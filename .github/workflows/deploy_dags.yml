@@ -1,11 +1,6 @@
 # Implanta os DAGs do Cloud Composer para o bucket GCS ao fazer push na branch main.
-# Requer os seguintes GitHub Secrets configurados no repositório:
-#   - GCP_PROJECT_ID       : ID do projeto GCP
-#   - WIF_PROVIDER         : Workload Identity Federation Provider
-#                            (formato: projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/POOL/providers/PROVIDER)
-#   - WIF_SERVICE_ACCOUNT  : Service Account email com permissão de escrita no bucket
-#   - GCS_BUCKET_NAME      : Nome do bucket GCS destino (sem gs://)
-#   - GCS_DAGS_PATH        : Caminho dentro do bucket (ex: dags)
+# Requer o seguinte GitHub Secret configurado no repositório:
+#   - GCP_SA_KEY: JSON completo da Service Account com permissão de escrita no bucket
 
 name: Deploy DAGs to Cloud Composer
 
@@ -28,12 +23,10 @@ jobs:
       - name: Checkout do repositório
         uses: actions/checkout@v4
 
-      - name: Autenticação no GCP via Workload Identity Federation
+      - name: Autenticação no GCP
         uses: google-github-actions/auth@v2
         with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
-          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Configurar Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
