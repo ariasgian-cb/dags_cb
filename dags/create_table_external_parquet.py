@@ -9,17 +9,17 @@ import os
 # ==================================================================
 try:
     # Nossa única fonte da verdade para todo o workflow
-    CONFIG = Variable.get("dataproc_config_cluster_iatributario", deserialize_json=True)
+    CONFIG = Variable.get("dataproc_config_Dataproc", deserialize_json=True)
 except Exception as e:
     print(f"Could not load Airflow Variable: {e}")
     CONFIG = {}
     
-enviroment = Variable.getenv('ENTORNO')
+enviroment = CONFIG.get('ENTORNO')
 # Configuração do seu projeto e dataset
-PROJECT_ID = Variable.getenv('PROJECT_ID')
+PROJECT_ID = CONFIG.get('PROJECT_ID')
 
 DATASET_ID='RAW'
-GCS_NAME = Variable.get('GCS_NAME')
+GCS_NAME = CONFIG.get('GCS_NAME')
 if enviroment=="DEV":
     TABLE_ID = "test_arquivos_xml"
     preffix='xml1'
