@@ -54,6 +54,7 @@ CLUSTER_CONFIG = {
     },
     "software_config": {
         "image_version": "2.2.71-debian12",
+        "optional_components": ["DOCKER"],
         "properties": {
             "spark:spark.executor.memory": "6157m",
             "spark:spark.executor.cores": "2",
