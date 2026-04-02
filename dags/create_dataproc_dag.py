@@ -200,15 +200,8 @@ with DAG(
     # ============================================
     previous_task = create_cluster
 
-    for job_info in JOBS_CONFIG:
-        # Se encontrarmos o job que vem DEPOIS da limpeza, ajustamos a dependência
-        if job_info['job_id'] == 'processamento_nfe':
-            # A tarefa anterior (job da API) deve levar à limpeza
-            previous_task >> limpar_pasta_parquet_nfe
-            # A limpeza agora se torna a "tarefa anterior" para o job de NFe
-            previous_task = limpar_pasta_parquet_nfe
-
     for job_config in JOBS_CONFIG:
+
         pyspark_job = {
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
@@ -224,6 +217,13 @@ with DAG(
             region=REGION,
             project_id=PROJECT_ID,
         )
+
+        # Se encontrarmos o job que vem DEPOIS da limpeza, ajustamos a dependência
+        if job_config['job_id'] == 'processamento_nfe':
+            # A tarefa anterior (job da API) deve levar à limpeza
+            previous_task >> limpar_pasta_parquet_nfe
+            # A limpeza agora se torna a "tarefa anterior" para o job de NFe
+            previous_task = limpar_pasta_parquet_nfe
 
         # Establecer dependencia secuencial
         previous_task >> submit_job
