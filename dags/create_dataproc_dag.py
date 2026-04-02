@@ -12,6 +12,7 @@ from airflow.providers.google.cloud.operators.dataproc import (
     DataprocDeleteClusterOperator,
     DataprocSubmitJobOperator
 )
+from airflow.providers.google.cloud.operators.gcs import GCSDeleteObjectsOperator
 from airflow.utils.dates import days_ago
 from airflow.models.variable import Variable
 
@@ -184,10 +185,27 @@ with DAG(
         labels=CLUSTER_LABELS,
     )
 
+    # ==================================================================
+    # TAREFA DE LIMPEZA, DEFINIDA FORA DO LOOP
+    # ==================================================================
+    limpar_pasta_parquet_nfe = GCSDeleteObjectsOperator(
+        task_id="limpar_pasta_parquet_nfe",
+        bucket_name=CONFIG.get("GCS_NAME_PARQUET"),
+        prefix="xml1/" if CONFIG.get("ENTORNO") == "DEV" else "xml/",
+    )
+
     # ============================================
     # TAREA 2-4: EJECUTAR JOBS PYSPARK
     # ============================================
     previous_task = create_cluster
+
+    for job_info in JOBS_CONFIG:
+        # Se encontrarmos o job que vem DEPOIS da limpeza, ajustamos a dependência
+        if job_info['job_id'] == 'processamento_nfe':
+            # A tarefa anterior (job da API) deve levar à limpeza
+            previous_task >> limpar_pasta_parquet_nfe
+            # A limpeza agora se torna a "tarefa anterior" para o job de NFe
+            previous_task = limpar_pasta_parquet_nfe
 
     for job_config in JOBS_CONFIG:
         pyspark_job = {

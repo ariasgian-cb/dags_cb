@@ -9,6 +9,7 @@ import csv
 import time
 import sys
 import gc
+import argparse
 from typing import Optional, Dict, Any, List
 import xmltodict
 from pyspark.sql.functions import *
@@ -29,12 +30,12 @@ logger = logging.getLogger(__name__)
 # CONFIGURAÇÃO
 # ============================================================
 # Obter ambiente desde argumentos ou variável de ambiente
-if len(sys.argv) > 1:
-    enviroment = sys.argv[1]
-    print(f"📋 Ambiente desde argumentos: {enviroment}")
-else:
-    enviroment = 'DEV'
-    print(f"📋 Ambiente desde variável: {enviroment}")
+parser = argparse.ArgumentParser()
+parser.add_argument("--entorno", default='DEV',
+                    help="Ambiente de execução (DEV ou PROD)")
+args = parser.parse_args()
+enviroment = args.entorno
+print(f"📋 Ambiente desde variável: {enviroment}")
 
 INPUT_BUCKET = "tributario_xml_file"
 OUTPUT_BUCKET = "tributario_raw"
