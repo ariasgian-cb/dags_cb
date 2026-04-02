@@ -44,7 +44,7 @@ API_JOB_ARGS_CONFIG = CONFIG.get("API_EXTRACT_JOB", {})
 SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags"
 JOBS_CONFIG = [
     {
-        "job_id": "extracao_xml_api",
+        "job_id": "extraction_xml_api",
         "script": f"{SCRIPTS_BASE_PATH}/jobs/extract_xml_dataproc_fast.py",
         "description": "Extrai os XMLs da API de documentos fiscais",
         "args": [
@@ -58,7 +58,7 @@ JOBS_CONFIG = [
         ]
     },
     {
-        "job_id": "processamento_nfe",
+        "job_id": "processing_nfe",
         "script": f"{SCRIPTS_BASE_PATH}/jobs/process_nfe_xmls.py",
         "description": "Processa os XMLs de NFe e gera o Parquet",
         "args": [
@@ -190,7 +190,7 @@ with DAG(
     # TAREFA DE LIMPEZA, DEFINIDA FORA DO LOOP
     # ==================================================================
     limpar_pasta_parquet_nfe = GCSDeleteObjectsOperator(
-        task_id="limpar_pasta_parquet_nfe",
+        task_id="submit_job_clean_parquet_subfolder",
         bucket_name=CONFIG.get("GCS_NAME_PARQUET"),
         prefix="xml1/" if CONFIG.get("ENTORNO") == "DEV" else "xml/",
     )
