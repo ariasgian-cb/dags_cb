@@ -168,8 +168,8 @@ with DAG(
     dag_id="dataproc_analytics_pipeline",
     default_args=default_args,
     description="Pipeline de analytics con Dataproc efímero - Ejecución secuencial de jobs PySpark",
-    # schedule_interval="0 2 * * *",  # Diario a las 2 AM
-    schedule_interval=None,
+    schedule_interval="0 2 * * *",  # Diario a las 2 AM
+    # schedule_interval=None,
     catchup=False,
     tags=["dataproc", "pyspark", "analytics", "ephemeral"],
 ) as dag:
