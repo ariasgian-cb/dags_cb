@@ -37,7 +37,7 @@ GCS_NAME = CONFIG.get('GCS_NAME')
 CLUSTER_NAME = f"{CLUSTER_PREFIX}-{{{{ ds_nodash }}}}"
 
 # Pega a configuração específica do job da API da nossa variável
-API_JOB_ARGS_CONFIG = CONFIG.get("api_extract_job", {})
+API_JOB_ARGS_CONFIG = CONFIG.get("API_EXTRACT_JOB", {})
 
 # Rutas de los scripts PySpark en GCS
 SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags"
@@ -47,10 +47,10 @@ JOBS_CONFIG = [
         "script": f"{SCRIPTS_BASE_PATH}/jobs/extract_xml_dataproc_fast.py",
         "description": "Extrai os XMLs da API de documentos fiscais",
         "args": [
-            "--gcs_bucket",       API_JOB_ARGS_CONFIG.get("gcs_bucket"),
-            "--source_csv",       API_JOB_ARGS_CONFIG.get("source_csv"),
-            "--state_file",       API_JOB_ARGS_CONFIG.get("state_file"),
-            "--output_prefix",    API_JOB_ARGS_CONFIG.get("output_prefix"),
+            "--gcs_bucket",       API_JOB_ARGS_CONFIG.get("GSC_BUCKET"),
+            "--source_csv",       API_JOB_ARGS_CONFIG.get("SOURCE_CSV"),
+            "--state_file",       API_JOB_ARGS_CONFIG.get("STATE_FILE"),
+            "--output_prefix",    API_JOB_ARGS_CONFIG.get("OUTPUT_PREFIX"),
             "--max_workers",      "4",
             "--batch_size",       "500",
             "--max_upload_workers", "32"
