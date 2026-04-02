@@ -47,7 +47,7 @@ JOBS_CONFIG = [
         "script": f"{SCRIPTS_BASE_PATH}/jobs/extract_xml_dataproc_fast.py",
         "description": "Extrai os XMLs da API de documentos fiscais",
         "args": [
-            "--gcs_bucket",       API_JOB_ARGS_CONFIG.get("GSC_BUCKET"),
+            "--gcs_bucket",       API_JOB_ARGS_CONFIG.get("GCS_BUCKET"),
             "--source_csv",       API_JOB_ARGS_CONFIG.get("SOURCE_CSV"),
             "--state_file",       API_JOB_ARGS_CONFIG.get("STATE_FILE"),
             "--output_prefix",    API_JOB_ARGS_CONFIG.get("OUTPUT_PREFIX"),
