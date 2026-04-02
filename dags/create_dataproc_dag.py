@@ -189,7 +189,7 @@ with DAG(
     # ==================================================================
     # TAREFA DE LIMPEZA, DEFINIDA FORA DO LOOP
     # ==================================================================
-    limpar_pasta_parquet_nfe = GCSDeleteObjectsOperator(
+    limpar_subpasta_parquet = GCSDeleteObjectsOperator(
         task_id="submit_job_clean_parquet_subfolder",
         bucket_name=CONFIG.get("GCS_NAME_PARQUET"),
         prefix="xml1/" if CONFIG.get("ENTORNO") == "DEV" else "xml/",
@@ -219,11 +219,11 @@ with DAG(
         )
 
         # Se encontrarmos o job que vem DEPOIS da limpeza, ajustamos a dependência
-        if job_config['job_id'] == 'processamento_nfe':
+        if job_config['job_id'] == 'processing_nfe':
             # A tarefa anterior (job da API) deve levar à limpeza
-            previous_task >> limpar_pasta_parquet_nfe
+            previous_task >> limpar_subpasta_parquet
             # A limpeza agora se torna a "tarefa anterior" para o job de NFe
-            previous_task = limpar_pasta_parquet_nfe
+            previous_task = limpar_subpasta_parquet
 
         # Establecer dependencia secuencial
         previous_task >> submit_job
