@@ -16,6 +16,8 @@ from airflow.providers.google.cloud.operators.gcs import GCSDeleteObjectsOperato
 from airflow.utils.dates import days_ago
 from airflow.models.variable import Variable
 
+from utils.date_utils import obter_pasta_processamento
+
 # Carregar variáveis de ambiente do arquivo .env
 # 1. LER AS CONFIGURAÇÕES DA VARIÁVEL DO AIRFLOW
 # ==================================================================
@@ -40,6 +42,11 @@ CLUSTER_NAME = f"{CLUSTER_PREFIX}-{{{{ ds_nodash }}}}"
 # Pega a configuração específica do job da API da nossa variável
 API_JOB_ARGS_CONFIG = CONFIG.get("API_EXTRACT_JOB", {})
 
+# Calcular dinamicamente o nome da pasta de processamento
+# Usamos a data de execução lógica do Airflow (`{{ ds }}`)
+data_execucao_obj = datetime.datetime.strptime("{{ ds }}", "%Y-%m-%d").date()
+PASTA_PROCESSAMENTO = obter_pasta_processamento(data_execucao_obj)
+
 # Rutas de los scripts PySpark en GCS
 SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags"
 JOBS_CONFIG = [
@@ -52,6 +59,7 @@ JOBS_CONFIG = [
             "--source_csv",       API_JOB_ARGS_CONFIG.get("SOURCE_CSV"),
             "--state_file",       API_JOB_ARGS_CONFIG.get("STATE_FILE"),
             "--output_prefix",    API_JOB_ARGS_CONFIG.get("OUTPUT_PREFIX"),
+            # "--output_prefix",    PASTA_PROCESSAMENTO if ENTORNO == "PROD" else API_JOB_ARGS_CONFIG.get("OUTPUT_PREFIX"),
             "--max_workers",      "4",
             "--batch_size",       "500",
             "--max_upload_workers", "32"
@@ -63,6 +71,7 @@ JOBS_CONFIG = [
         "description": "Processa os XMLs de NFe e gera o Parquet",
         "args": [
             "--entorno", CONFIG.get("ENTORNO")
+            # "--input_prefix_folder", PASTA_PROCESSAMENTO if ENTORNO == "PROD" else "input_test
         ]
     },
     {

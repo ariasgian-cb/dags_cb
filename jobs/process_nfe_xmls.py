@@ -15,8 +15,6 @@ import xmltodict
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 from pyspark.sql import SparkSession
-# import subprocess
-# subprocess.check_call(["pip", "install", "xmltodict==1.0.2"])
 """
 Processamento de XMLs NFe em Dataproc Job
 Arquivo: process_nfe_xmls.py
@@ -33,6 +31,7 @@ logger = logging.getLogger(__name__)
 parser = argparse.ArgumentParser()
 parser.add_argument("--entorno", default='DEV',
                     help="Ambiente de execução (DEV ou PROD)")
+# parser.add_argument("--input_prefix_folder", required=True, help="Pasta de processamento no formato YYYYMM.")
 args = parser.parse_args()
 enviroment = args.entorno
 print(f"📋 Ambiente desde variável: {enviroment}")
@@ -41,6 +40,8 @@ INPUT_BUCKET = "tributario_xml_file"
 OUTPUT_BUCKET = "tributario_raw"
 
 if enviroment == "PROD":
+    # # AGORA USA O ARGUMENTO EM VEZ DO VALOR FIXO
+    # INPUT_PREFIX = f"{args.input_prefix_folder}/"
     INPUT_PREFIX = "202512/"
     OUTPUT_PREFIX = "xml"
 else:
