@@ -42,14 +42,7 @@ CLUSTER_NAME = f"{CLUSTER_PREFIX}-{{{{ ds_nodash }}}}"
 # Pega a configuração específica do job da API da nossa variável
 API_JOB_ARGS_CONFIG = CONFIG.get("API_EXTRACT_JOB", {})
 
-# Calcular dinamicamente o nome da pasta de processamento
-# Usamos a data de execução lógica do Airflow (`{{ ds }}`)
 ENTORNO = CONFIG.get("ENTORNO")
-PASTA_PROCESSAMENTO = None
-if ENTORNO == "PROD":
-    # A data de execução só é calculada se for produção
-    data_execucao_obj = datetime.strptime("{{ ds }}", "%Y-%m-%d").date()
-    PASTA_PROCESSAMENTO = obter_pasta_processamento(data_execucao_obj)
 
 # Rutas de los scripts PySpark en GCS
 SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags"
@@ -63,7 +56,7 @@ JOBS_CONFIG = [
             "--source_csv",       API_JOB_ARGS_CONFIG.get("SOURCE_CSV"),
             "--state_file",       API_JOB_ARGS_CONFIG.get("STATE_FILE"),
             "--output_prefix",    API_JOB_ARGS_CONFIG.get("OUTPUT_PREFIX"),
-            # "--output_prefix",    PASTA_PROCESSAMENTO if ENTORNO == "PROD" else API_JOB_ARGS_CONFIG.get("OUTPUT_PREFIX"),
+            # "--output_prefix", "{{ obter_pasta_processamento(datetime.strptime(ds, '%Y-%m-%d').date()) }}" if ENTORNO == "PROD" else API_JOB_ARGS_CONFIG.get("OUTPUT_PREFIX"),
             "--max_workers",      "4",
             "--batch_size",       "500",
             "--max_upload_workers", "32"
@@ -74,8 +67,8 @@ JOBS_CONFIG = [
         "script": f"{SCRIPTS_BASE_PATH}/jobs/process_nfe_xmls.py",
         "description": "Processa os XMLs de NFe e gera o Parquet",
         "args": [
-            "--entorno", CONFIG.get("ENTORNO")
-            # "--input_prefix_folder", PASTA_PROCESSAMENTO if ENTORNO == "PROD" else "input_test
+            "--entorno", ENTORNO
+            # "--input_prefix_folder", "{{ obter_pasta_processamento(datetime.strptime(ds, '%Y-%m-%d').date()) }}" if ENTORNO == "PROD" else "input_test"
         ]
     },
     {
@@ -83,7 +76,7 @@ JOBS_CONFIG = [
         "script": f"{SCRIPTS_BASE_PATH}/jobs/create_table_external_parquet.py",
         "description": "Create table",
         "args": [
-            "--entorno",    CONFIG.get("ENTORNO"),
+            "--entorno",    ENTORNO,
             "--project_id", CONFIG.get("PROJECT_ID"),
             "--gcs_name",   CONFIG.get("GCS_NAME"),
             "--gcs_name_parquet",   CONFIG.get("GCS_NAME_PARQUET")
@@ -185,6 +178,10 @@ with DAG(
     # schedule_interval=None,
     catchup=False,
     tags=["dataproc", "pyspark", "analytics", "ephemeral"],
+    user_defined_macros={
+        'obter_pasta_processamento': obter_pasta_processamento,
+        'datetime': datetime
+    }
 ) as dag:
 
     # ============================================
