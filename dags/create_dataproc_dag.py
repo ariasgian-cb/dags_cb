@@ -44,8 +44,12 @@ API_JOB_ARGS_CONFIG = CONFIG.get("API_EXTRACT_JOB", {})
 
 # Calcular dinamicamente o nome da pasta de processamento
 # Usamos a data de execução lógica do Airflow (`{{ ds }}`)
-data_execucao_obj = datetime.strptime("{{ ds }}", "%Y-%m-%d").date()
-PASTA_PROCESSAMENTO = obter_pasta_processamento(data_execucao_obj)
+ENTORNO = CONFIG.get("ENTORNO")
+PASTA_PROCESSAMENTO = None
+if ENTORNO == "PROD":
+    # A data de execução só é calculada se for produção
+    data_execucao_obj = datetime.strptime("{{ ds }}", "%Y-%m-%d").date()
+    PASTA_PROCESSAMENTO = obter_pasta_processamento(data_execucao_obj)
 
 # Rutas de los scripts PySpark en GCS
 SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags"
