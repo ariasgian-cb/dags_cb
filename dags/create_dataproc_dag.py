@@ -44,6 +44,13 @@ API_JOB_ARGS_CONFIG = CONFIG.get("API_EXTRACT_JOB", {})
 
 ENTORNO = CONFIG.get("ENTORNO")
 
+# Carregar configurações de IA
+try:
+    IA_CONFIG = Variable.get("ia_config", deserialize_json=True)
+except Exception as e:
+    print(f"Could not load IA config: {e}")
+    IA_CONFIG = {}
+
 # Rutas de los scripts PySpark en GCS
 SCRIPTS_BASE_PATH = f"gs://{GCS_NAME}/dags"
 JOBS_CONFIG = [
@@ -80,6 +87,50 @@ JOBS_CONFIG = [
             "--project_id", CONFIG.get("PROJECT_ID"),
             "--gcs_name",   CONFIG.get("GCS_NAME"),
             "--gcs_name_parquet",   CONFIG.get("GCS_NAME_PARQUET")
+        ]
+    },
+    # ============================================
+    # JOBS DE IA (Python puro - rodam no cluster)
+    # ============================================
+    {
+        "job_id": "ia_generate_errors",
+        "script": f"{SCRIPTS_BASE_PATH}/jobs/IA_1_generate_all_errors.py",
+        "description": "Gera respostas de IA para erros tributários",
+        "args": [
+            "--project_id",              PROJECT_ID,
+            "--location",                IA_CONFIG.get("LOCATION"),
+            "--gemini_model",            IA_CONFIG.get("GEMINI_MODEL"),
+            "--bucket_file_path",        IA_CONFIG.get("BUCKET_FILE_PATH"),
+            "--output_bucket_path",      IA_CONFIG.get("OUTPUT_BUCKET_PATH"),
+            "--bigquery_dataset",        IA_CONFIG.get("BIGQUERY_DATASET"),
+            "--bigquery_table",          IA_CONFIG.get("BIGQUERY_TABLE"),
+            "--bigquery_table_feedback", IA_CONFIG.get("BIGQUERY_TABLE_FEEDBACK"),
+            "--table_errors_path",       IA_CONFIG.get("TABLE_ERRORS_PATH")
+        ]
+    },
+    {
+        "job_id": "ia_ingest_bigquery",
+        "script": f"{SCRIPTS_BASE_PATH}/jobs/IA_2_ingest_to_bigquery.py",
+        "description": "Ingere respostas de IA no BigQuery",
+        "args": [
+            "--project_id",           PROJECT_ID,
+            "--output_bucket_path",   IA_CONFIG.get("OUTPUT_BUCKET_PATH"),
+            "--bigquery_dataset",     IA_CONFIG.get("BIGQUERY_DATASET"),
+            "--bigquery_table",       IA_CONFIG.get("BIGQUERY_TABLE")
+        ]
+    },
+    {
+        "job_id": "ia_refine_feedbacks",
+        "script": f"{SCRIPTS_BASE_PATH}/jobs/IA_3_refinar_com_feedbacks.py",
+        "description": "Refina respostas com feedbacks dos usuários",
+        "args": [
+            "--project_id",              PROJECT_ID,
+            "--location",                IA_CONFIG.get("LOCATION"),
+            "--gemini_model",            IA_CONFIG.get("GEMINI_MODEL"),
+            "--bucket_file_path",        IA_CONFIG.get("BUCKET_FILE_PATH"),
+            "--output_bucket_path",      IA_CONFIG.get("OUTPUT_BUCKET_PATH"),
+            "--bigquery_dataset",        IA_CONFIG.get("BIGQUERY_DATASET"),
+            "--bigquery_table_feedback", IA_CONFIG.get("BIGQUERY_TABLE_FEEDBACK")
         ]
     }
 ]
@@ -212,6 +263,8 @@ with DAG(
 
     for job_config in JOBS_CONFIG:
 
+        # Todos os jobs rodam no cluster (PySpark ou Python)
+        # Python puro também usa pyspark_job (Dataproc executa como batch no cluster)
         pyspark_job = {
             "reference": {"project_id": PROJECT_ID},
             "placement": {"cluster_name": CLUSTER_NAME},
