@@ -22,20 +22,20 @@ python3 -m pip install "/tmp/${WHEEL_NAME}" --no-index --break-system-packages
 echo "   ✅ xmltodict instalado!"
 
 # ============================================
-# 2. DEPENDÊNCIAS DE IA (ONLINE)
+# 2. DEPENDÊNCIAS DE IA (OFFLINE - subpasta ia/)
 # ============================================
 echo ""
-echo "2️⃣ Instalando dependências de IA (ONLINE)..."
+echo "2️⃣ Instalando dependências de IA (OFFLINE)..."
 
-# google-genai (Gemini SDK)
-echo "   Instalando google-genai..."
-python3 -m pip install google-genai --break-system-packages --quiet
-echo "   ✅ google-genai instalado!"
+# Baixar TODOS os .whl da subpasta ia/
+echo "   Baixando todos os .whl da subpasta ia/..."
+gsutil -m cp "${BUCKET_PATH}/ia/*.whl" /tmp/
 
-# tqdm (progress bars)
-echo "   Instalando tqdm..."
-python3 -m pip install tqdm --break-system-packages --quiet
-echo "   ✅ tqdm instalado!"
+# Instalar TODOS os .whl baixados (google-genai, tqdm e todas as dependências)
+echo "   Instalando todos os pacotes..."
+python3 -m pip install /tmp/*.whl --no-index --break-system-packages --quiet
+
+echo "   ✅ Todas as dependências de IA instaladas!"
 
 # Verificar instalação
 echo ""
